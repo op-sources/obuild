@@ -90,7 +90,7 @@ export async function build(config: BuildConfig): Promise<void> {
     ),
   )
 
-  consola.log(`\n✅ obuild finished in ${Date.now() - start}ms`)
+  consola.log(`\n✅ tsbuild finished in ${Date.now() - start}ms`)
 }
 
 // --- utils ---

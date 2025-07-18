@@ -1,10 +1,10 @@
-# 📦 obuild 😯
+# 📦 tsbuild 😯
 
 ✅ Zero-config ESM/TS package builder.
 
 Powered by [**oxc**](https://oxc.rs/), [**rolldown**](https://rolldown.rs/) and [**rolldown-plugin-dts**](https://github.com/sxzz/rolldown-plugin-dts).
 
-The **obuild** project aims to be the next-generation successor to the current [unbuild](https://github.com/unjs/unbuild).
+The **tsbuild** project aims to be the next-generation successor to the current [tsbuild](https://github.com/Sunny-117/tsbuild).
 
 - 👌 Focus on ESM compatibility.
 - 🌱 Fresh rewrite with cleanups and removal of legacy features.
@@ -24,7 +24,7 @@ Some differences are not easy to adopt. Developing as a standalone project allow
 
 ## Currently used by
 
-- [📦 obuild](https://github.com/unjs/obuild/)
+- [📦 tsbuild](https://github.com/Sunny-117/tsbuild/)
 - [🌳 rou3](https://github.com/h3js/rou3/)
 - [💥 srvx](https://github.com/h3js/srvx)
 - [🕊️ unenv](https://github.com/unjs/unenv)
@@ -37,20 +37,20 @@ Some differences are not easy to adopt. Developing as a standalone project allow
 
 ```sh
 # bundle
-npx obuild ./src/index.ts
+npx tsbuild ./src/index.ts
 
 # transform
-npx obuild ./src/runtime/:./dist/runtime
+npx tsbuild ./src/runtime/:./dist/runtime
 ```
 
 You can use `--dir` to set the working directory.
 
-If paths end with `/`, obuild uses transpile mode using [oxc-transform](https://www.npmjs.com/package/oxc-transform) instead of bundle mode with [rolldown](https://rolldown.rs/).
+If paths end with `/`, tsbuild uses transpile mode using [oxc-transform](https://www.npmjs.com/package/oxc-transform) instead of bundle mode with [rolldown](https://rolldown.rs/).
 
 ### Programmatic
 
 ```js
-import { build } from 'obuild'
+import { build } from 'tsbuild'
 
 await build({
   cwd: '.',
@@ -63,7 +63,7 @@ await build({
 You can use `build.config.mjs` (or `.ts`) or pass config to `build()` function.
 
 ```js
-import { defineBuildConfig } from 'obuild/config'
+import { defineBuildConfig } from 'tsbuild/config'
 
 export default defineBuildConfig({
   entries: [
@@ -100,7 +100,7 @@ export default defineBuildConfig({
 
 When working on a package locally, it can be tedious to rebuild or run the watch command every time.
 
-You can use `stub: true` (per entry config) or the `--stub` CLI flag. In this mode, obuild skips the actual build and instead links the expected dist paths to the source files.
+You can use `stub: true` (per entry config) or the `--stub` CLI flag. In this mode, tsbuild skips the actual build and instead links the expected dist paths to the source files.
 
 - For bundle entries, `.mjs` and `.d.mts` files re-export the source file.
 - For transpile entries, src dir is symlinked to dist.
@@ -120,7 +120,7 @@ You can use `stub: true` (per entry config) or the `--stub` CLI flag. In this mo
 
 ## Prior Arts
 
-- [unbuild](https://github.com/unjs/unbuild): Stable solution based on rollup and [mkdist](https://github.com/unjs/mkdist).
+- [tsbuild](https://github.com/Sunny-117/tsbuild): Stable solution based on rollup and [mkdist](https://github.com/unjs/mkdist).
 - [tsdown](https://tsdown.dev/): Alternative bundler based on rolldown.
 
 ## License

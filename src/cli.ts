@@ -24,7 +24,7 @@ const args = parseArgs({
 })
 
 const { config = {} } = await loadConfig<BuildConfig>({
-  name: 'obuild',
+  name: 'tsbuild',
   configFile: 'build.config',
   cwd: args.values.dir,
 })

@@ -1,12 +1,12 @@
 import { readdir, readFile, rm, stat } from 'node:fs/promises'
 
-import { beforeAll, describe, expect } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { build } from '../src/build.ts'
 
 const fixtureDir = new URL('fixture/', import.meta.url)
 const distDir = new URL('dist/', fixtureDir)
 
-describe('obuild', () => {
+describe('tsbuild', () => {
   beforeAll(async () => {
     await rm(distDir, { recursive: true, force: true })
   })

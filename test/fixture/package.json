@@ -6,7 +6,7 @@
     "./runtime/**": "./dist/runtime/**.mjs"
   },
   "scripts": {
-    "build": "obuild",
+    "build": "tsbuild",
     "prepack": "pnpm build"
   }
 }
