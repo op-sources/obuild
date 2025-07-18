@@ -1,16 +1,10 @@
-import unjs from "eslint-config-unjs";
+import antfu from '@antfu/eslint-config'
 
-export default unjs({
-  ignores: [
-    // ignore paths
-  ],
+export default antfu({
   rules: {
-    "unicorn/no-null": "off",
-    "unicorn/no-nested-ternary": "off",
+    'no-lone-blocks': 'off', // 忽略“嵌套块是多余的”错误
+    'node/prefer-global/process': 'off',
+    'node/prefer-global/buffer': 'off',
+    'no-console': 'off',
   },
-  markdown: {
-    rules: {
-      // markdown rule overrides
-    },
-  },
-});
+})

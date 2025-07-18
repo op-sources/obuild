@@ -1,5 +1,5 @@
 export function test() {
-  return "utils bundled";
+  return 'utils bundled'
 }
 
-export default "default utils export";
+export default 'default utils export'

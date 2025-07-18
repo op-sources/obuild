@@ -1,5 +1,5 @@
 export function test() {
-  return "test bundled";
+  return 'test bundled'
 }
 
-export default "default export";
+export default 'default export'

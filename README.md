@@ -50,12 +50,12 @@ If paths end with `/`, obuild uses transpile mode using [oxc-transform](https://
 ### Programmatic
 
 ```js
-import { build } from "obuild";
+import { build } from 'obuild'
 
 await build({
-  cwd: ".",
-  entries: ["./src/index.ts"],
-});
+  cwd: '.',
+  entries: ['./src/index.ts'],
+})
 ```
 
 ## Config
@@ -63,13 +63,13 @@ await build({
 You can use `build.config.mjs` (or `.ts`) or pass config to `build()` function.
 
 ```js
-import { defineBuildConfig } from "obuild/config";
+import { defineBuildConfig } from 'obuild/config'
 
 export default defineBuildConfig({
   entries: [
     {
-      type: "bundle",
-      input: ["./src/index.ts", "./src/cli.ts"],
+      type: 'bundle',
+      input: ['./src/index.ts', './src/cli.ts'],
       // outDir: "./dist",
       // minify: false,
       // stub: false,
@@ -77,9 +77,9 @@ export default defineBuildConfig({
       // dts: {}, // https://github.com/sxzz/rolldown-plugin-dts#options
     },
     {
-      type: "transform",
-      input: "./src/runtime",
-      outDir: "./dist/runtime",
+      type: 'transform',
+      input: './src/runtime',
+      outDir: './dist/runtime',
       // minify: false,
       // stub: false,
       // oxc: {},
@@ -93,7 +93,7 @@ export default defineBuildConfig({
     // rolldownConfig: (config, ctx) => {},
     // rolldownOutput: (output, res, ctx) => {},
   },
-});
+})
 ```
 
 ## Stub Mode

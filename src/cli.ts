@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { parseArgs } from "node:util";
-import { consola } from "consola";
-import { build } from "./build.ts";
-import { loadConfig } from "c12";
+import type { BuildConfig, BuildEntry } from './types.ts'
+import { parseArgs } from 'node:util'
+import { loadConfig } from 'c12'
+import { consola } from 'consola'
 
-import type { BuildConfig, BuildEntry } from "./types.ts";
+import { build } from './build.ts'
 
 // https://nodejs.org/api/util.html#utilparseargsconfig
 const args = parseArgs({
@@ -13,50 +13,50 @@ const args = parseArgs({
   allowPositionals: true,
   options: {
     dir: {
-      type: "string",
-      default: ".",
+      type: 'string',
+      default: '.',
     },
     stub: {
-      type: "boolean",
+      type: 'boolean',
       default: false,
     },
   },
-});
+})
 
 const { config = {} } = await loadConfig<BuildConfig>({
-  name: "obuild",
-  configFile: "build.config",
+  name: 'obuild',
+  configFile: 'build.config',
   cwd: args.values.dir,
-});
+})
 
-const rawEntries =
-  args.positionals.length > 0
+const rawEntries
+  = args.positionals.length > 0
     ? (args.positionals as string[])
-    : config.entries || [];
+    : config.entries || []
 
 const entries: BuildEntry[] = rawEntries.map((entry) => {
-  if (typeof entry === "string") {
-    const [input, outDir] = entry.split(":") as [string, string | undefined];
-    return input.endsWith("/")
-      ? { type: "transform", input, outDir }
-      : { type: "bundle", input: input.split(","), outDir };
+  if (typeof entry === 'string') {
+    const [input, outDir] = entry.split(':') as [string, string | undefined]
+    return input.endsWith('/')
+      ? { type: 'transform', input, outDir }
+      : { type: 'bundle', input: input.split(','), outDir }
   }
-  return entry;
-});
+  return entry
+})
 
 if (args.values.stub) {
   for (const entry of entries) {
-    entry.stub = true;
+    entry.stub = true
   }
 }
 
 if (rawEntries.length === 0) {
-  consola.error("No build entries specified.");
-  process.exit(1);
+  consola.error('No build entries specified.')
+  process.exit(1)
 }
 
 await build({
   cwd: args.values.dir,
   ...config,
   entries,
-});
+})

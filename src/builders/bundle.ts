@@ -1,26 +1,26 @@
-import { builtinModules } from "node:module";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, relative, join, basename, extname, resolve } from "node:path";
-import { consola } from "consola";
-import { colors as c } from "consola/utils";
-import { rolldown } from "rolldown";
-import { dts } from "rolldown-plugin-dts";
-import oxcParser from "oxc-parser";
-import { resolveModulePath } from "exsolve";
-import prettyBytes from "pretty-bytes";
-import { distSize, fmtPath, sideEffectSize } from "../utils.ts";
-import { makeExecutable, shebangPlugin } from "./plugins/shebang.ts";
-import { defu } from "defu";
-
 import type {
-  OutputChunk,
-  Plugin,
   InputOptions,
+  OutputChunk,
   OutputOptions,
-} from "rolldown";
+  Plugin,
+} from 'rolldown'
+import type { Options as DtsOptions } from 'rolldown-plugin-dts'
+import type { BuildContext, BuildHooks, BundleEntry } from '../types.ts'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { builtinModules } from 'node:module'
+import { basename, dirname, extname, join, relative, resolve } from 'node:path'
+import { consola } from 'consola'
+import { colors as c } from 'consola/utils'
+import { defu } from 'defu'
+import { resolveModulePath } from 'exsolve'
+import oxcParser from 'oxc-parser'
+import prettyBytes from 'pretty-bytes'
+import { rolldown } from 'rolldown'
 
-import type { Options as DtsOptions } from "rolldown-plugin-dts";
-import type { BuildContext, BuildHooks, BundleEntry } from "../types.ts";
+import { dts } from 'rolldown-plugin-dts'
+
+import { distSize, fmtPath, sideEffectSize } from '../utils.ts'
+import { makeExecutable, shebangPlugin } from './plugins/shebang.ts'
 
 export async function rolldownBuild(
   ctx: BuildContext,
@@ -30,118 +30,120 @@ export async function rolldownBuild(
   const inputs: Record<string, string> = normalizeBundleInputs(
     entry.input,
     ctx,
-  );
+  )
 
   if (entry.stub) {
     for (const [distName, srcPath] of Object.entries(inputs)) {
-      const distPath = join(ctx.pkgDir, "dist", `${distName}.mjs`);
-      await mkdir(dirname(distPath), { recursive: true });
+      const distPath = join(ctx.pkgDir, 'dist', `${distName}.mjs`)
+      await mkdir(dirname(distPath), { recursive: true })
       consola.log(
-        `${c.magenta("[stub bundle] ")} ${c.underline(fmtPath(distPath))}`,
-      );
-      const srcContents = await readFile(srcPath, "utf8");
-      const parsed = oxcParser.parseSync(srcPath, srcContents);
-      const exportNames = parsed.module.staticExports.flatMap((e) =>
-        e.entries.map((e) =>
-          e.exportName.kind === "Default" ? "default" : e.exportName.name,
+        `${c.magenta('[stub bundle] ')} ${c.underline(fmtPath(distPath))}`,
+      )
+      const srcContents = await readFile(srcPath, 'utf8')
+      const parsed = oxcParser.parseSync(srcPath, srcContents)
+      const exportNames = parsed.module.staticExports.flatMap(e =>
+        e.entries.map(e =>
+          e.exportName.kind === 'Default' ? 'default' : e.exportName.name,
         ),
-      );
-      const hasDefaultExport = exportNames.includes("default");
-      const firstLine = srcContents.split("\n")[0];
-      const hasShebangLine = firstLine.startsWith("#!");
+      )
+      const hasDefaultExport = exportNames.includes('default')
+      const firstLine = srcContents.split('\n')[0]
+      const hasShebangLine = firstLine.startsWith('#!')
       await writeFile(
         distPath,
-        `${hasShebangLine ? firstLine + "\n" : ""}export * from "${srcPath}";\n${hasDefaultExport ? `export { default } from "${srcPath}";\n` : ""}`,
-        "utf8",
-      );
+        `${hasShebangLine ? `${firstLine}\n` : ''}export * from "${srcPath}";\n${hasDefaultExport ? `export { default } from "${srcPath}";\n` : ''}`,
+        'utf8',
+      )
       if (hasShebangLine) {
-        await makeExecutable(distPath);
+        await makeExecutable(distPath)
       }
       await writeFile(
-        distPath.replace(/\.mjs$/, ".d.mts"),
-        `export * from "${srcPath}";\n${hasDefaultExport ? `export { default } from "${srcPath}";\n` : ""}`,
-        "utf8",
-      );
+        distPath.replace(/\.mjs$/, '.d.mts'),
+        `export * from "${srcPath}";\n${hasDefaultExport ? `export { default } from "${srcPath}";\n` : ''}`,
+        'utf8',
+      )
     }
-    return;
+    return
   }
 
   const rolldownConfig = defu(entry.rolldown, {
     cwd: ctx.pkgDir,
     input: inputs,
     plugins: [shebangPlugin()] as Plugin[],
-    platform: "neutral",
+    platform: 'neutral',
     external: [
       ...builtinModules,
-      ...builtinModules.map((m) => `node:${m}`),
+      ...builtinModules.map(m => `node:${m}`),
       ...[
         ...Object.keys(ctx.pkg.dependencies || {}),
         ...Object.keys(ctx.pkg.peerDependencies || {}),
-      ].flatMap((p) => [p, new RegExp(`^${p}/`)]),
+      ].flatMap(p => [p, new RegExp(`^${p}/`)]),
     ],
-  } satisfies InputOptions);
+  } satisfies InputOptions)
 
   if (entry.dts !== false) {
-    rolldownConfig.plugins.push(...dts({ ...(entry.dts as DtsOptions) }));
+    rolldownConfig.plugins.push(...dts({ ...(entry.dts as DtsOptions) }))
   }
 
-  await hooks.rolldownConfig?.(rolldownConfig, ctx);
+  await hooks.rolldownConfig?.(rolldownConfig, ctx)
 
-  const res = await rolldown(rolldownConfig);
+  const res = await rolldown(rolldownConfig)
 
-  const outDir = resolve(ctx.pkgDir, entry.outDir || "dist");
+  const outDir = resolve(ctx.pkgDir, entry.outDir || 'dist')
 
   const outConfig: OutputOptions = {
     dir: outDir,
-    entryFileNames: "[name].mjs",
-    chunkFileNames: "_chunks/[name]-[hash].mjs",
+    entryFileNames: '[name].mjs',
+    chunkFileNames: '_chunks/[name]-[hash].mjs',
     minify: entry.minify,
-  };
+  }
 
-  await hooks.rolldownOutput?.(outConfig, res, ctx);
+  await hooks.rolldownOutput?.(outConfig, res, ctx)
 
-  const { output } = await res.write(outConfig);
+  const { output } = await res.write(outConfig)
 
-  await res.close();
+  await res.close()
 
   const outputEntries: {
-    name: string;
-    exports: string[];
-    deps: string[];
-    size: number;
-    minSize: number;
-    minGzipSize: number;
-    sideEffectSize: number;
-  }[] = [];
+    name: string
+    exports: string[]
+    deps: string[]
+    size: number
+    minSize: number
+    minGzipSize: number
+    sideEffectSize: number
+  }[] = []
 
-  const depsCache = new Map<OutputChunk, Set<string>>();
+  const depsCache = new Map<OutputChunk, Set<string>>()
   const resolveDeps = (chunk: OutputChunk) => {
     if (!depsCache.has(chunk)) {
-      depsCache.set(chunk, new Set<string>());
+      depsCache.set(chunk, new Set<string>())
     }
-    const deps = depsCache.get(chunk)!;
+    const deps = depsCache.get(chunk)!
     for (const id of chunk.imports) {
-      if (builtinModules.includes(id) || id.startsWith("node:")) {
-        deps.add(`[Node.js]`);
-        continue;
+      if (builtinModules.includes(id) || id.startsWith('node:')) {
+        deps.add(`[Node.js]`)
+        continue
       }
       const depChunk = output.find(
-        (o) => o.type === "chunk" && o.fileName === id,
-      ) as OutputChunk | undefined;
+        o => o.type === 'chunk' && o.fileName === id,
+      ) as OutputChunk | undefined
       if (depChunk) {
         for (const dep of resolveDeps(depChunk)) {
-          deps.add(dep);
+          deps.add(dep)
         }
-        continue;
+        continue
       }
-      deps.add(id);
+      deps.add(id)
     }
-    return [...deps].sort();
-  };
+    return [...deps].sort()
+  }
 
   for (const chunk of output) {
-    if (chunk.type !== "chunk" || !chunk.isEntry) continue;
-    if (chunk.fileName.endsWith("ts")) continue;
+    if (chunk.type !== 'chunk' || !chunk.isEntry)
+      continue
+    if (chunk.fileName.endsWith('ts'))
+      continue
 
     outputEntries.push({
       name: chunk.fileName,
@@ -149,66 +151,66 @@ export async function rolldownBuild(
       deps: resolveDeps(chunk),
       ...(await distSize(outDir, chunk.fileName)),
       sideEffectSize: await sideEffectSize(outDir, chunk.fileName),
-    });
+    })
   }
 
   consola.log(
     `\n${outputEntries
-      .map((o) =>
+      .map(o =>
         [
-          c.magenta(`[bundle] `) +
-            `${c.underline(fmtPath(join(outDir, o.name)))}`,
+          `${c.magenta(`[bundle] `)
+          }${c.underline(fmtPath(join(outDir, o.name)))}`,
           c.dim(
-            `${c.bold("Size:")} ${prettyBytes(o.size)}, ${c.bold(prettyBytes(o.minSize))} minified, ${prettyBytes(o.minGzipSize)} min+gzipped (Side effects: ${prettyBytes(o.sideEffectSize)})`,
+            `${c.bold('Size:')} ${prettyBytes(o.size)}, ${c.bold(prettyBytes(o.minSize))} minified, ${prettyBytes(o.minGzipSize)} min+gzipped (Side effects: ${prettyBytes(o.sideEffectSize)})`,
           ),
-          o.exports.some((e) => e !== "default")
+          o.exports.some(e => e !== 'default')
             ? c.dim(
-                `${c.bold("Exports:")} ${o.exports.map((e) => e).join(", ")}`,
+                `${c.bold('Exports:')} ${o.exports.map(e => e).join(', ')}`,
               )
-            : "",
+            : '',
           o.deps.length > 0
-            ? c.dim(`${c.bold("Dependencies:")} ${o.deps.join(", ")}`)
-            : "",
+            ? c.dim(`${c.bold('Dependencies:')} ${o.deps.join(', ')}`)
+            : '',
         ]
           .filter(Boolean)
-          .join("\n"),
+          .join('\n'),
       )
-      .join("\n\n")}`,
-  );
+      .join('\n\n')}`,
+  )
 }
 
 export function normalizeBundleInputs(
   input: string | string[],
   ctx: BuildContext,
 ): Record<string, string> {
-  const inputs: Record<string, string> = {};
+  const inputs: Record<string, string> = {}
 
   for (let src of Array.isArray(input) ? input : [input]) {
     src = resolveModulePath(src, {
       from: ctx.pkgDir,
-      extensions: [".ts", ".js", ".mjs", ".cjs", ".json"],
-    });
-    let relativeSrc = relative(join(ctx.pkgDir, "src"), src);
-    if (relativeSrc.startsWith("..")) {
-      relativeSrc = relative(join(ctx.pkgDir), src);
+      extensions: ['.ts', '.js', '.mjs', '.cjs', '.json'],
+    })
+    let relativeSrc = relative(join(ctx.pkgDir, 'src'), src)
+    if (relativeSrc.startsWith('..')) {
+      relativeSrc = relative(join(ctx.pkgDir), src)
     }
-    if (relativeSrc.startsWith("..")) {
+    if (relativeSrc.startsWith('..')) {
       throw new Error(
         `Source should be within the package directory (${ctx.pkgDir}): ${src}`,
-      );
+      )
     }
 
     const distName = join(
       dirname(relativeSrc),
       basename(relativeSrc, extname(relativeSrc)),
-    );
+    )
     if (inputs[distName]) {
       throw new Error(
         `Rename one of the entries to avoid a conflict in the dist name "${distName}":\n - ${src}\n - ${inputs[distName]}`,
-      );
+      )
     }
-    inputs[distName] = src;
+    inputs[distName] = src
   }
 
-  return inputs;
+  return inputs
 }

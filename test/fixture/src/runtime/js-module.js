@@ -1,3 +1,3 @@
 export function jsModule() {
-  return "js-module";
+  return 'js-module'
 }

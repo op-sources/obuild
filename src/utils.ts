@@ -1,71 +1,72 @@
-import { readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import type { Plugin } from 'rolldown'
+import { readdirSync, statSync } from 'node:fs'
 
-import { type Plugin, rolldown } from "rolldown";
-import { minify } from "oxc-minify";
-import { gzipSync } from "node:zlib";
+import { join, resolve } from 'node:path'
+import { gzipSync } from 'node:zlib'
+import { minify } from 'oxc-minify'
+import { rolldown } from 'rolldown'
 
 export function fmtPath(path: string): string {
-  return resolve(path).replace(process.cwd(), ".");
+  return resolve(path).replace(process.cwd(), '.')
 }
 
 export function analyzeDir(dir: string | string[]): {
-  size: number;
-  files: number;
+  size: number
+  files: number
 } {
   if (Array.isArray(dir)) {
-    let totalSize = 0;
-    let totalFiles = 0;
+    let totalSize = 0
+    let totalFiles = 0
     for (const d of dir) {
-      const { size, files } = analyzeDir(d);
-      totalSize += size;
-      totalFiles += files;
+      const { size, files } = analyzeDir(d)
+      totalSize += size
+      totalFiles += files
     }
-    return { size: totalSize, files: totalFiles };
+    return { size: totalSize, files: totalFiles }
   }
 
-  let totalSize = 0;
+  let totalSize = 0
 
-  const files = readdirSync(dir, { withFileTypes: true, recursive: true });
+  const files = readdirSync(dir, { withFileTypes: true, recursive: true })
 
   for (const file of files) {
-    const fullPath = join(file.parentPath, file.name);
+    const fullPath = join(file.parentPath, file.name)
     if (file.isFile()) {
-      const { size } = statSync(fullPath);
-      totalSize += size;
+      const { size } = statSync(fullPath)
+      totalSize += size
     }
   }
 
-  return { size: totalSize, files: files.length };
+  return { size: totalSize, files: files.length }
 }
 
 export async function distSize(
   dir: string,
   entry: string,
 ): Promise<{
-  size: number;
-  minSize: number;
-  minGzipSize: number;
+  size: number
+  minSize: number
+  minGzipSize: number
 }> {
   const build = await rolldown({
     input: join(dir, entry),
     plugins: [],
-    platform: "neutral",
-    external: (id) => id[0] !== "." && !id.startsWith(dir),
-  });
+    platform: 'neutral',
+    external: id => id[0] !== '.' && !id.startsWith(dir),
+  })
 
   const { output } = await build.generate({
     inlineDynamicImports: true,
-  });
+  })
 
-  const code = output[0].code;
-  const { code: minified } = await minify(entry, code);
+  const code = output[0].code
+  const { code: minified } = await minify(entry, code)
 
   return {
     size: Buffer.byteLength(code),
     minSize: Buffer.byteLength(minified),
     minGzipSize: gzipSync(minified).length,
-  };
+  }
 }
 
 export async function sideEffectSize(
@@ -73,42 +74,42 @@ export async function sideEffectSize(
   entry: string,
 ): Promise<number> {
   const virtualEntry: Plugin = {
-    name: "virtual-entry",
+    name: 'virtual-entry',
     async resolveId(id, importer, opts) {
-      if (id === "#entry") {
-        return { id };
+      if (id === '#entry') {
+        return { id }
       }
-      const resolved = await this.resolve(id, importer, opts);
+      const resolved = await this.resolve(id, importer, opts)
       if (!resolved) {
-        return null;
+        return null
       }
-      resolved.moduleSideEffects = null;
-      return resolved;
+      resolved.moduleSideEffects = null
+      return resolved
     },
     load(id) {
-      if (id === "#entry") {
-        return /* js */ `import * as _lib from "${join(dir, entry)}";`;
+      if (id === '#entry') {
+        return /* js */ `import * as _lib from "${join(dir, entry)}";`
       }
     },
-  };
+  }
 
   const build = await rolldown({
-    input: "#entry",
-    platform: "neutral",
-    external: (id) => id[0] !== "." && !id.startsWith(dir),
+    input: '#entry',
+    platform: 'neutral',
+    external: id => id[0] !== '.' && !id.startsWith(dir),
     plugins: [virtualEntry],
-  });
+  })
 
   const { output } = await build.generate({
     inlineDynamicImports: true,
-  });
+  })
 
   if (process.env.INSPECT_BUILD) {
-    console.log("---------[side effects]---------");
-    console.log(entry);
-    console.log(output[0].code);
-    console.log("-------------------------------");
+    console.log('---------[side effects]---------')
+    console.log(entry)
+    console.log(output[0].code)
+    console.log('-------------------------------')
   }
 
-  return Buffer.byteLength(output[0].code.trim());
+  return Buffer.byteLength(output[0].code.trim())
 }
