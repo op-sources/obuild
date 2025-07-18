@@ -1,11 +1,11 @@
 {
-  "name": "tsbuild",
+  "name": "robuild",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@10.11.1",
-  "description": "Zero-config ESM/TS package builder",
+  "description": "Zero-config ESM/TS package builder. Powered by Rolldown and Oxc",
   "license": "MIT",
-  "repository": "Sunny-117/tsbuild",
+  "repository": "Sunny-117/robuild",
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.mjs",
@@ -17,11 +17,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm tsbuild",
+    "build": "pnpm robuild",
     "dev": "pnpm vitest",
     "lint": "eslint .",
     "lint:fix": "automd && eslint . --fix",
-    "tsbuild": "esno src/cli.ts",
+    "robuild": "esno src/cli.ts",
     "prepack": "pnpm build",
     "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
     "test": "pnpm lint && pnpm test:types",

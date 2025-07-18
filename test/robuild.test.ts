@@ -6,7 +6,7 @@ import { build } from '../src/build.ts'
 const fixtureDir = new URL('fixture/', import.meta.url)
 const distDir = new URL('dist/', fixtureDir)
 
-describe('tsbuild', () => {
+describe('robuild', () => {
   beforeAll(async () => {
     await rm(distDir, { recursive: true, force: true })
   })

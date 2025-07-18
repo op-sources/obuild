@@ -1,4 +1,4 @@
-// Ported from https://github.com/Sunny-117/tsbuild/blob/main/src/builders/rollup/plugins/shebang.ts
+// Ported from https://github.com/Sunny-117/robuild/blob/main/src/builders/rollup/plugins/shebang.ts
 
 import type { Plugin } from 'rolldown'
 import { promises as fsp } from 'node:fs'
@@ -8,7 +8,7 @@ export const SHEBANG_RE: RegExp = /^#![^\n]*/
 
 export function shebangPlugin(): Plugin {
   return {
-    name: 'tsbuild-shebang',
+    name: 'robuild-shebang',
     async writeBundle(options, bundle): Promise<void> {
       for (const [fileName, output] of Object.entries(bundle)) {
         if (output.type !== 'chunk') {
